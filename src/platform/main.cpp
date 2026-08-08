@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 
 #include "shader.h"
+#include <stb_image.h>
+#include <assert.h>
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -54,7 +56,7 @@ int main()
 	// build and compile our shader program
 	// ------------------------------------
 	Shader shader1(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader1.fs");
-	Shader shader2(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader2.fs");
+	//Shader shader2(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader2.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -63,26 +65,34 @@ int main()
 	//	-0.0f, -0.5f, 0.0f,  // right
 	//	-0.45f, 0.5f, 0.0f,  // top 
 	//};
-	float firstTriangle[] = {
-		// positions         // colors
-		 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-		 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-	};
-	float texCoords[] = {
-		0.0f, 0.0f,  // lower-left corner  
-		1.0f, 0.0f,  // lower-right corner
-		0.5f, 1.0f   // top-center corner
-	};
-	float secondTriangle[] = {
-		// positions         // colors
-		0.0f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // left
-		0.9f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // right
-		0.45f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-	};
-	unsigned int indices[] = {  // note that we start from 0!
-		0, 1, 2,   // first triangle
-		3, 4, 5    // second triangle
+	//float firstTriangle[] = {
+	//	// positions         // colors
+	//	 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+	//	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+	//	 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+	//};
+	//float texCoords[] = {
+	//	0.0f, 0.0f,  // lower-left corner  
+	//	1.0f, 0.0f,  // lower-right corner
+	//	0.5f, 1.0f   // top-center corner
+	//};
+	//float secondTriangle[] = {
+	//	// positions         // colors
+	//	0.0f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // left
+	//	0.9f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // right
+	//	0.45f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+	//};
+	//unsigned int indices[] = {  // note that we start from 0!
+	//	0, 1, 2,   // first triangle
+	//	3, 4, 5    // second triangle
+	//};
+
+	float vertices[] = {
+		// positions          // colors           // texture coords
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 
 	// vertex buffers & vertex arrays
@@ -94,26 +104,29 @@ int main()
 	// location = 0, vec3, float, already normalized, spacing bw each vertex attribute (stride), offset
 	glBindVertexArray(vao[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // location = 0 in shader
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// stride = single vertex size (bytes), void *pointer = offset of each param inside vertex
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // location = 0 in shader
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // location = 2
+	glEnableVertexAttribArray(2);
 
-	// second triangle setup
-	glBindVertexArray(vao[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // location = 0 in shader
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
-	glEnableVertexAttribArray(1);
+	//// second triangle setup
+	//glBindVertexArray(vao[1]);
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // location = 0 in shader
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
+	//glEnableVertexAttribArray(1);
 
-	// element buffer
-	GLuint ebo = 0;
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//// element buffer
+	//GLuint ebo = 0;
+	//glGenBuffers(1, &ebo);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
 	glBindVertexArray(0);
@@ -134,11 +147,52 @@ int main()
 		glClearColor(.2f, .3f, .3f, 1.f); // clear color
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// draw
+		// draw with tex
 		// ----
-		shader1.use();
+		// create texture handle
+		unsigned int texture;
+		glGenTextures(1, &texture);
+
+		// bind texture
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// set params
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// load image
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(RESOURCES_PATH "container.jpg", &width, &height, &nrChannels, 0);
+
+		if (data)
+		{
+			// create texture
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+			// create mipmaps for texture
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+		}
+		assert(data);
+
+
+		// free image
+		stbi_image_free(data);
+
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glBindVertexArray(vao[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		// draw with shader
+		// ----
+		//shader1.use();
+		//glBindVertexArray(vao[0]);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		//float timeValue = glfwGetTime();
 		//float greenValue = (sin(timeValue) / 2.f) + .5f;
@@ -160,7 +214,7 @@ int main()
 	glDeleteVertexArrays(2, vao);
 	glDeleteBuffers(2, vbo);
 	shader1.del();
-	shader2.del();
+	//shader2.del();
 
 	glfwTerminate();
 	return 0;
