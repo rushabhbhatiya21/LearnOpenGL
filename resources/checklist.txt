@@ -1,0 +1,28 @@
+SHADER PROBLEM
+[ ] Vertex shader compiled?
+[ ] Fragment shader compiled?
+[ ] Program linked?
+[ ] Check shader info logs
+[ ] Check program info log
+[ ] Check inputs/outputs between stages
+
+OPENGL ERROR
+[ ] Check glGetError()
+[ ] Find FIRST call producing the error
+
+BLACK/WHITE/BLUE SCREEN
+[ ] Is clear color visible?
+[ ] Can I draw one triangle?
+[ ] Can I draw constant fragment color?
+[ ] Can I bypass texture?
+[ ] Can I bypass camera/projection?
+[ ] Are vertices inside clip space?
+[ ] Are VAO/VBO bound?
+[ ] Is the correct shader active?
+[ ] Are uniforms correct?
+[ ] Is texture/sampler correct?
+[ ] Check culling
+[ ] Check depth test
+[ ] Check blending
+[ ] Check viewport
+[ ] Check framebuffer
