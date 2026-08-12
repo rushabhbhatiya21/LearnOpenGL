@@ -46,9 +46,9 @@ FetchContent_MakeAvailable(glfw)
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(
-	"${CMAKE_PROJECT_NAME}"
+	"${CMAKE_PROJECT_NAME}" 
 	thirdParty/glad/src/glad.c
-	thirdParty/stb_image/stb_image.c
+	thirdParty/stb/stb_image.cpp
 )
 
 set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY CXX_STANDARD 20)
@@ -97,7 +97,7 @@ endif()
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/gameLayer")
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/platform")
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/glad/include)
-target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/stb_image)
+target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/stb)
 
 # Link raylib library statically
 target_link_libraries("${CMAKE_PROJECT_NAME}"
