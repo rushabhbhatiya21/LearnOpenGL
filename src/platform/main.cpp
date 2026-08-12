@@ -57,6 +57,7 @@ int main()
 	// build and compile our shader program
 	// ------------------------------------
 	Shader shader1(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader1.fs");
+	std::cout << "Shader1 ID: " << shader1.ID << std::endl;
 	//Shader shader2(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader2.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -83,10 +84,6 @@ int main()
 	//	0.9f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // right
 	//	0.45f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
 	//};
-	//unsigned int indices[] = {  // note that we start from 0!
-	//	0, 1, 2,   // first triangle
-	//	3, 4, 5    // second triangle
-	//};
 
 	float vertices[] = {
 		// positions          // colors           // texture coords
@@ -95,6 +92,13 @@ int main()
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
 		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
+
+	unsigned int indices[] = {  // note that we start from 0!
+		0, 1, 2,   // first triangle
+		0, 3, 2    // second triangle
+	};
+
+	std::cout << sizeof(vertices) << std::endl;
 
 	// vertex buffers & vertex arrays
 	GLuint vbo[2], vao[2];
@@ -105,7 +109,18 @@ int main()
 	// location = 0, vec3, float, already normalized, spacing bw each vertex attribute (stride), offset
 	glBindVertexArray(vao[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), static_cast<void*>(vertices), GL_STATIC_DRAW);
+
+	GLint size = 0;
+
+	glGetBufferParameteriv(
+		GL_ARRAY_BUFFER,
+		GL_BUFFER_SIZE,
+		&size
+	);
+
+	std::cout << "VBO size: " << size << std::endl;
+
 	// stride = single vertex size (bytes), void *pointer = offset of each param inside vertex
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); // location = 0 in shader
 	glEnableVertexAttribArray(0);
@@ -145,7 +160,7 @@ int main()
 
 		// render
 		// ------
-		glClearColor(.2f, .3f, .3f, 1.f); // clear color
+		glClearColor(0.2f, 0.3f, 0.3f, 1.f); // clear color
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// draw with tex
@@ -185,9 +200,18 @@ int main()
 		// free image
 		stbi_image_free(data);
 
+		shader1.use();
+		GLint currentProgram = 0;
+
+		glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBindVertexArray(vao[0]);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
+		GLenum error = glGetError();
+		if (error != GL_NO_ERROR)
+		{
+			std::cout << "OpenGL error: " << error << std::endl;
+		}
 
 		// draw with shader
 		// ----
