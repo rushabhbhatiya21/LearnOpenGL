@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
 
 #include "shader.h"
 
@@ -136,7 +137,7 @@ int main()
 
 		// draw
 		// ----
-		shader1.use();
+		shader2.use();
 		glBindVertexArray(vao[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
