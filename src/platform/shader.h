@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
 
@@ -26,5 +25,3 @@ public:
     void set4Float(const std::string& name, float v0, float v1, float v2, float v3) const;
     void del();
 };
-
-#endif
