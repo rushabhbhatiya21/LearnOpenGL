@@ -1,26 +1,21 @@
 #include <iostream>
+#include <algorithm>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-
-#include "shader.h"
-#include <stb_image.h>
 #include <assert.h>
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_resize_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
+#include "shader.h"
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+// stores how much we're seeing of either texture
+float mixValue = 0.2f;
 
 int main()
 {
@@ -33,7 +28,7 @@ int main()
 
 	// glfw window creation
 	// --------------------
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Learn OpneGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Learn OpneGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
@@ -41,7 +36,7 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// glad: load all OpenGL function pointers
 	// ---------------------------------------
@@ -62,29 +57,6 @@ int main()
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
-	//float firstTriangle[] = {
-	//	-0.9f, -0.5f, 0.0f,  // left 
-	//	-0.0f, -0.5f, 0.0f,  // right
-	//	-0.45f, 0.5f, 0.0f,  // top 
-	//};
-	//float firstTriangle[] = {
-	//	// positions         // colors
-	//	 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-	//	-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-	//	 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-	//};
-	//float texCoords[] = {
-	//	0.0f, 0.0f,  // lower-left corner  
-	//	1.0f, 0.0f,  // lower-right corner
-	//	0.5f, 1.0f   // top-center corner
-	//};
-	//float secondTriangle[] = {
-	//	// positions         // colors
-	//	0.0f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // left
-	//	0.9f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // right
-	//	0.45f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-	//};
-
 	float vertices[] = {
 		// positions          // colors           // texture coords
 		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
@@ -129,21 +101,6 @@ int main()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // location = 2
 	glEnableVertexAttribArray(2);
 
-	//// second triangle setup
-	//glBindVertexArray(vao[1]);
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0); // location = 0 in shader
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
-	//glEnableVertexAttribArray(1);
-
-	//// element buffer
-	//GLuint ebo = 0;
-	//glGenBuffers(1, &ebo);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 
 	glBindVertexArray(0);
 
@@ -169,14 +126,17 @@ int main()
 		unsigned int texture;
 		glGenTextures(1, &texture);
 
+		// by default 0 is activated
+		// can use at least a minimum of 16 texture units
+		glActiveTexture(GL_TEXTURE0);
 		// bind texture
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 		// set params
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		// load image
 		int width, height, nrChannels;
@@ -196,15 +156,43 @@ int main()
 		}
 		assert(data);
 
-
 		// free image
 		stbi_image_free(data);
 
-		shader1.use();
-		GLint currentProgram = 0;
+		unsigned int texture2;
+		glGenTextures(1, &texture2);
 
-		glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		data = stbi_load(RESOURCES_PATH "awesomeface.png", &width, &height, &nrChannels, 0);
+		stbi_set_flip_vertically_on_load(true);
+
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+		}
+		assert(data);
+
+		stbi_image_free(data);
+
+		shader1.use();
+		shader1.setInt("texture1", 0);
+		shader1.setInt("texture2", 1);
+		shader1.setFloat("mixValue", mixValue);
+		//glUniform1i(glGetUniformLocation(shader1.ID, "texture1"), 0);
+		//glUniform1i(glGetUniformLocation(shader1.ID, "texture2"), 1);
+
 		glBindVertexArray(vao[0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 		GLenum error = glGetError();
@@ -212,21 +200,6 @@ int main()
 		{
 			std::cout << "OpenGL error: " << error << std::endl;
 		}
-
-		// draw with shader
-		// ----
-		//shader1.use();
-		//glBindVertexArray(vao[0]);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		//float timeValue = glfwGetTime();
-		//float greenValue = (sin(timeValue) / 2.f) + .5f;
-		//shader2.use();
-		//shader2.set4Float("ourColor", 0.f, greenValue, 0.f, 1.f);
-		//shader2.setFloat("offsetX", -.1f);
-		//glBindVertexArray(vao[1]);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -239,8 +212,28 @@ int main()
 	glDeleteVertexArrays(2, vao);
 	glDeleteBuffers(2, vbo);
 	shader1.del();
-	//shader2.del();
 
 	glfwTerminate();
 	return 0;
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
+void processInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		mixValue = std::clamp(mixValue + 0.01f, 0.f, 1.f);
+
+	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		mixValue = std::clamp(mixValue - 0.01f, 0.f, 1.f);
 }
