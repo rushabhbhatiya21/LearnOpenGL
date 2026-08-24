@@ -1,11 +1,25 @@
+#pragma region headers
+
+#pragma region in-built
 #include <iostream>
 #include <algorithm>
+#include <assert.h>
+#pragma endregion
+
+#pragma region platform
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include <assert.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#pragma endregion
 
+#pragma region custom
 #include "shader.h"
+#pragma endregion
+
+#pragma endregion
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -101,8 +115,75 @@ int main()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); // location = 2
 	glEnableVertexAttribArray(2);
 
-
 	glBindVertexArray(0);
+
+	// create texture handle
+	unsigned int texture, texture2;
+	glGenTextures(1, &texture);
+
+	// by default 0 is activated
+	// can use at least a minimum of 16 texture units
+	glActiveTexture(GL_TEXTURE0);
+	// bind texture
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// set params
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// load image
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(RESOURCES_PATH "container.jpg", &width, &height, &nrChannels, 0);
+
+	if (data)
+	{
+		// create texture
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		// create mipmaps for texture
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+	}
+	assert(data);
+
+	// free image
+	stbi_image_free(data);
+
+	glGenTextures(1, &texture2);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	data = stbi_load(RESOURCES_PATH "awesomeface.png", &width, &height, &nrChannels, 0);
+	stbi_set_flip_vertically_on_load(true);
+
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+	}
+	assert(data);
+
+	stbi_image_free(data);
+
+	shader1.use();
+	shader1.setInt("texture1", 0);
+	shader1.setInt("texture2", 1);
+	shader1.setFloat("mixValue", mixValue);
 
 	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -120,79 +201,23 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f); // clear color
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// draw with tex
-		// ----
-		// create texture handle
-		unsigned int texture;
-		glGenTextures(1, &texture);
-
-		// by default 0 is activated
-		// can use at least a minimum of 16 texture units
+		// bind textures on corresponding texture units
 		glActiveTexture(GL_TEXTURE0);
-		// bind texture
 		glBindTexture(GL_TEXTURE_2D, texture);
-
-		// set params
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		// load image
-		int width, height, nrChannels;
-		unsigned char* data = stbi_load(RESOURCES_PATH "container.jpg", &width, &height, &nrChannels, 0);
-
-		if (data)
-		{
-			// create texture
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-			// create mipmaps for texture
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
-		}
-		assert(data);
-
-		// free image
-		stbi_image_free(data);
-
-		unsigned int texture2;
-		glGenTextures(1, &texture2);
-
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// create transformations
+		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		data = stbi_load(RESOURCES_PATH "awesomeface.png", &width, &height, &nrChannels, 0);
-		stbi_set_flip_vertically_on_load(true);
-
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
-		}
-		assert(data);
-
-		stbi_image_free(data);
-
+		// get matrix's uniform location and set matrix
 		shader1.use();
-		shader1.setInt("texture1", 0);
-		shader1.setInt("texture2", 1);
-		shader1.setFloat("mixValue", mixValue);
-		//glUniform1i(glGetUniformLocation(shader1.ID, "texture1"), 0);
-		//glUniform1i(glGetUniformLocation(shader1.ID, "texture2"), 1);
+		unsigned int transformLocation = glGetUniformLocation(shader1.ID, "transform");
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
 
+		// render container
 		glBindVertexArray(vao[0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 		GLenum error = glGetError();
@@ -200,6 +225,16 @@ int main()
 		{
 			std::cout << "OpenGL error: " << error << std::endl;
 		}
+
+		// scalar triangle
+		transform = glm::mat4(1.f);
+		transform = glm::translate(transform, glm::vec3(-0.5f, 0.5f, 1.f));
+		float scalar = static_cast<float>(glm::sin(glfwGetTime()));
+		transform = glm::scale(transform, glm::vec3(scalar, scalar, 1.f));
+
+		// draw scalar triangle
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, &transform[0][0]); // this time take the matrix value array's first element as its memory pointer value, both are valid
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
