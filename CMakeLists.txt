@@ -32,14 +32,14 @@ FetchContent_Declare(
     GIT_TAG        3.4 # Use the specific version you need
 )
 
-# 2. Prevent GLFW from building its internal tests and documentation
+# 2. Prevent GLFW & GLM from building its internal tests and documentation
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "GLFW lib only" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW lib only" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only" FORCE)
+set(GLM_TEST_ENABLE OFF CACHE INTERNAL "Disable GLM test bench")
 
 FetchContent_MakeAvailable(glfw)
-
 
 # MY_SOURCES is defined to be a list of all the source files for my game 
 # DON'T ADD THE SOURCES BY HAND, they are already added with this macro
@@ -98,6 +98,7 @@ target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURC
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/platform")
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/glad/include)
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/stb)
+target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC thirdParty/glm-0.9.8.5/glm)
 
 # Link raylib library statically
 target_link_libraries("${CMAKE_PROJECT_NAME}"
