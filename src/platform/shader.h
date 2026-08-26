@@ -2,6 +2,10 @@
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -23,5 +27,6 @@ public:
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;
     void set4Float(const std::string& name, float v0, float v1, float v2, float v3) const;
+    void setMat4(const std::string& name, glm::mat4 matrix4);
     void del();
 };

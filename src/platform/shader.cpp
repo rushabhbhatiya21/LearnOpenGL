@@ -103,6 +103,11 @@ void Shader::set4Float(const std::string& name, float v0, float v1, float v2, fl
     glUniform4f(glGetUniformLocation(ID, name.c_str()), v0, v1, v2, v3);
 }
 
+void Shader::setMat4(const std::string& name, glm::mat4 matrix4)
+{
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &matrix4[0][0]);
+}
+
 void Shader::del()
 {
     glDeleteShader(ID);
