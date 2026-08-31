@@ -44,6 +44,9 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
+// light
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 int main()
 {
 	// glfw: initialize and configure
@@ -91,8 +94,8 @@ int main()
 
 	// build and compile our shader program
 	// ------------------------------------
-	Shader shader1(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader1.fs");
-	std::cout << "Shader1 ID: " << shader1.ID << std::endl;
+	Shader lightingShader(RESOURCES_PATH "shaders/colors.vs", RESOURCES_PATH "shaders/colors.fs");
+	Shader lightCubeShader(RESOURCES_PATH "shaders/light_cube.vs", RESOURCES_PATH "shaders/light_cube.fs");
 
 	//Shader shader2(RESOURCES_PATH "shaders/shader.vs", RESOURCES_PATH "shaders/shader2.fs");
 
@@ -109,47 +112,47 @@ int main()
 
 	// 3D
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
 
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f, -0.5f,
+		 0.5f, -0.5f,  0.5f,
+		 0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
 	};
 
 	glm::vec3 cubePositions[] = {
@@ -173,15 +176,31 @@ int main()
 	std::cout << sizeof(vertices) << std::endl;
 
 	// vertex buffers & vertex arrays
-	GLuint vbo[2], vao[2];
-	glGenBuffers(2, vbo);
-	glGenVertexArrays(2, vao);
-
-	// first triangle setup
 	// location = 0, vec3, float, already normalized, spacing bw each vertex attribute (stride), offset
-	glBindVertexArray(vao[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), static_cast<void*>(vertices), GL_STATIC_DRAW);
+	// first, configure the cube's VAO (and VBO)
+	unsigned int VBO, cubeVAO;
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &VBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(cubeVAO);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+	unsigned int lightCubeVAO;
+	glGenVertexArrays(1, &lightCubeVAO);
+	glBindVertexArray(lightCubeVAO);
+
+	// we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	GLint size = 0;
 
@@ -193,84 +212,73 @@ int main()
 
 	std::cout << "VBO size: " << size << std::endl;
 
-	// stride = single vertex size (bytes), void *pointer = offset of each param inside vertex
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0); // location = 0 in shader
-	glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); // location = 1
-	//glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float))); // location = 2
-	glEnableVertexAttribArray(2);
+#pragma region handle texture
 
-	glBindVertexArray(0);
+	//// create texture handle
+	//unsigned int texture, texture2;
+	//glGenTextures(1, &texture);
 
-	// create texture handle
-	unsigned int texture, texture2;
-	glGenTextures(1, &texture);
+	//// by default 0 is activated
+	//// can use at least a minimum of 16 texture units
+	//glActiveTexture(GL_TEXTURE0);
+	//// bind texture
+	//glBindTexture(GL_TEXTURE_2D, texture);
 
-	// by default 0 is activated
-	// can use at least a minimum of 16 texture units
-	glActiveTexture(GL_TEXTURE0);
-	// bind texture
-	glBindTexture(GL_TEXTURE_2D, texture);
+	//// set params
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	// set params
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//// load image
+	//int width, height, nrChannels;
+	//stbi_set_flip_vertically_on_load(true);
+	//unsigned char* data = stbi_load(RESOURCES_PATH "container.jpg", &width, &height, &nrChannels, 0);
 
-	// load image
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(RESOURCES_PATH "container.jpg", &width, &height, &nrChannels, 0);
+	//if (data)
+	//{
+	//	// create texture
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-	if (data)
-	{
-		// create texture
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	//	// create mipmaps for texture
+	//	glGenerateMipmap(GL_TEXTURE_2D);
+	//}
+	//else
+	//{
+	//	std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+	//}
+	//assert(data);
 
-		// create mipmaps for texture
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
-	}
-	assert(data);
+	//// free image
+	//stbi_image_free(data);
 
-	// free image
-	stbi_image_free(data);
+	//glGenTextures(1, &texture2);
 
-	glGenTextures(1, &texture2);
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, texture2);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture2);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//data = stbi_load(RESOURCES_PATH "awesomeface.png", &width, &height, &nrChannels, 0);
+	//stbi_set_flip_vertically_on_load(true);
 
-	data = stbi_load(RESOURCES_PATH "awesomeface.png", &width, &height, &nrChannels, 0);
-	stbi_set_flip_vertically_on_load(true);
+	//if (data)
+	//{
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	//	glGenerateMipmap(GL_TEXTURE_2D);
+	//}
+	//else
+	//{
+	//	std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
+	//}
+	//assert(data);
 
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "ERROR::IMAGE::FAILED TO LOAD IMAGE FROM FILE" << std::endl;
-	}
-	assert(data);
+	//stbi_image_free(data);
 
-	stbi_image_free(data);
-
-	shader1.use();
-	shader1.setInt("texture1", 0);
-	shader1.setInt("texture2", 1);
-	shader1.setFloat("mixValue", mixValue);
+#pragma endregion
 
 	const float radius = 10.0f;
 
@@ -293,46 +301,64 @@ int main()
 
 		// render
 		// ------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.f); // clear color
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.f); // clear color
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// bind textures on corresponding texture units
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		//// bind textures on corresponding texture units
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, texture);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, texture2);
 
 		// get matrix's uniform location and set matrix
-		shader1.use();
 		// pass them in 3 diff ways
 		// (i)   by set method of our shader class 
 		// (ii)  by glm::value_ptr 
 		// (iii) by &mat4[0][0]
 
+		// setting uniforms / drawing objects
+		lightCubeShader.use();
+		lightCubeShader.setVec3("objectColor", 1.f, 0.5f, 0.31f);
+		lightCubeShader.setVec3("lightColor", 1.f, 1.f, 1.f);
+
+		// view/projection transformations
 		// pass projection matrix to shader (note that in this case it could change every frame)
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		shader1.setMat4("projection", projection);
-
-		// camera/view transformation
 		glm::mat4 view = camera.GetViewMatrix();
-		shader1.setMat4("view", view);
+		lightCubeShader.setMat4("projection", projection);
+		lightCubeShader.setMat4("view", view);
 
-		// render container
-		glBindVertexArray(vao[0]);
+		// world transformation
+		glm::mat4 model = glm::mat4(1.0f);
+		lightCubeShader.setMat4("model", model);
+
+		// render the cube
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 		
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			glm::mat4 model = glm::mat4(1.f);
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.f * i;
-			if (i % 3 == 0)
-				angle *= glfwGetTime();
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			shader1.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		// also draw the lamp object
+		lightingShader.use();
+		lightingShader.setMat4("projection", projection);
+		lightingShader.setMat4("view", view);
+		model = glm::mat4(1.f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		lightingShader.setMat4("model", model);
+		glBindVertexArray(lightCubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//for (unsigned int i = 0; i < 10; i++)
+		//{
+		//	glm::mat4 model = glm::mat4(1.f);
+		//	model = glm::translate(model, cubePositions[i]);
+		//	float angle = 20.f * i;
+		//	if (i % 3 == 0)
+		//		angle *= glfwGetTime();
+		//	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+		//	lightShader.setMat4("model", model);
+		//	glDrawArrays(GL_TRIANGLES, 0, 36);
+		//}
 
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR)
@@ -348,9 +374,11 @@ int main()
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(2, vao);
-	glDeleteBuffers(2, vbo);
-	shader1.del();
+	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteVertexArrays(1, &lightCubeVAO);
+	glDeleteBuffers(1, &VBO);
+	lightingShader.del();
+	lightCubeShader.del();
 
 	glfwTerminate();
 	return 0;

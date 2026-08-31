@@ -126,6 +126,11 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &matrix4[0][0]);
     }
 
+    void setVec3(const std::string& name, float r, float g, float b)
+    {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), r, g, b);
+    }
+
     void del()
     {
         glDeleteShader(ID);
